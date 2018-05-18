@@ -15,3 +15,11 @@ build-develop:
   only: 
     - develop
 
+deploy-develop:
+  stage: deploy
+  image: binkops.azurecr.io/kubedeployer:latest
+  script:
+    - kubectl config use-context dev
+    - kubectl delete po $(kubectl get pods --no-headers=true -l run=iris -o custom-columns=:metadata.name)
+  only:
+    - develop
