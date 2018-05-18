@@ -8,6 +8,7 @@ flask = "*"
 pillow = "*"
 requests = "*"
 azure-storage-blob = "*"
+uwsgi = "*"
 
 [dev-packages]
 jedi = "*"
