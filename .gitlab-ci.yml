@@ -12,5 +12,6 @@ build-develop:
   script:
     - docker build --pull -t "$CI_REGISTRY/iris:latest" .
     - docker push "$CI_REGISTRY/iris:latest"
-  only: develop
+  only: 
+    - develop
 
