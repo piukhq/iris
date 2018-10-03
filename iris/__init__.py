@@ -37,12 +37,7 @@ def resource_exists(url):
     return result.ok
 
 
-@app.route('/healthz')
-def healthz():
-    return ''
-
-
-@app.route('/<path:resource_path>')
+@app.route('/content/<path:resource_path>')
 def get_resource(resource_path):
     width = request.args.get('width')
     height = request.args.get('height')
