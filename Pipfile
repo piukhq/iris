@@ -7,16 +7,8 @@ name = "pypi"
 flask = "*"
 pillow = "*"
 requests = "*"
-azure-storage-blob = "*"
-uwsgi = "*"
 
 [dev-packages]
-jedi = "*"
-importmagic = "*"
-"autopep8" = "*"
-yapf = "*"
-"flake8" = "*"
-ptpython = "*"
 
 [requires]
 python_version = "3.6"
