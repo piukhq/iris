@@ -59,7 +59,7 @@ def get_resource(resource_path):
     if should_resize:
         pil_image = resize_image(load_pil_image(download_image(resource_path)), int(width), int(height))
         with BytesIO() as fd:
-            pil_image.save(fd, format=file_ext.lstrip('.'))
+            pil_image.save(fd, format=mimetype.split('/')[1])
             image = fd.getvalue()
     else:
         image = download_image(resource_path)
