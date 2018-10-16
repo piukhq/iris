@@ -34,7 +34,7 @@ deploy-dev:
   environment: dev
   script:
     - kubectl config use-context dev
-    - kubectl delete po $(kubectl get po --no-headers=true pods -l run=iris -o custom-columns=:metadata.name)
+    - kubectl delete po $(kubectl get po --no-headers=true -l project=iris -o custom-columns=:metadata.name)
   only:
     - develop
 
