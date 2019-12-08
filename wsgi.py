@@ -1,1 +1,1 @@
-from iris import app
+from iris import app # noqa
