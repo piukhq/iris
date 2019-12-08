@@ -55,4 +55,3 @@ tag-prod:
   when: manual
   only:
     - tags
-

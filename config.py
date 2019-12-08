@@ -13,4 +13,4 @@ def getenv(key, default=None, conv=str):
     return conv(var)
 
 
-STORAGE_BASE_URL = getenv('STORAGE_BASE_URL')
+STORAGE_BASE_URL = getenv('STORAGE_BASE_URL', 'https://bink.blob.core.windows.net')
