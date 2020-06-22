@@ -1,13 +1,15 @@
-FROM python:3.7-alpine
+FROM binkhq/python:3.8
 
 WORKDIR /app
 COPY . .
 
-RUN apk add --no-cache --virtual build \
-      zlib-dev \
-      build-base && \
-    apk add --no-cache jpeg-dev && \
-    pip install gunicorn pipenv && pipenv install --system --deploy && \
-    apk del --no-cache build
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y zlib1g-dev libjpeg-dev && \
+    pip install --no-cache-dir gunicorn pipenv==2018.11.26 && \
+    pipenv install --system --deploy --ignore-pipfile && \
+    apt-get autoremove -y zlib1g-dev libjpeg-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists
 
-CMD ["/usr/local/bin/gunicorn", "-c", "gunicorn.py", "wsgi:app"]
+CMD [ "gunicorn", "--workers=2", "--threads=2", "--error-logfile=-", \
+                  "--access-logfile=-", "--bind=0.0.0.0:9000", "iris:app" ]
