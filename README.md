@@ -11,8 +11,9 @@ pipenv install --dev
 ## Test Server
 
 ```shell
-pipenv shell
-flask run
+export STORAGE_ACCOUNT_CONNECTION_STRING=BLAH
+export STORAGE_CONTAINER=BLAH
+pipenv run python iris/__init__.py
 ```
 
 ```shell

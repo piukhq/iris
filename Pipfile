@@ -6,8 +6,12 @@ name = "pypi"
 [packages]
 flask = "*"
 pillow = "*"
-requests = "*"
+azure-storage-blob = "*"
 
 [dev-packages]
 flake8 = "*"
 gunicorn = "*"
+black = "*"
+
+[pipenv]
+allow_prereleases = true
