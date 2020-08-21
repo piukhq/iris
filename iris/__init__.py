@@ -2,115 +2,102 @@ from io import BytesIO
 import mimetypes
 import logging
 import pathlib
-import time
+import os
+from azure.storage.blob import ContainerClient
+from azure.core.exceptions import ResourceNotFoundError
+from typing import Optional
 
-from flask import Flask, request, redirect
-from azure.storage.blob import BlockBlobService
-from azure.storage.blob.models import ContentSettings
-import requests
+from flask import Flask, request, Response, jsonify, make_response
 import PIL.Image
 
-import config
-
-
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s :: %(levelname)s :: %(message)s')
-log = logging.getLogger(__name__)
+log = logging.getLogger("iris")
+log.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s"))
+log.addHandler(handler)
 
 app = Flask(__name__)
 
-
-_cache = {}
-
-
-def make_resized_image_path(original_path, width, height):
-    head, tail = original_path.rsplit('.', 1)
-    return f"{head}.{width}x{height}.{tail}"
+container_client = ContainerClient.from_connection_string(
+    os.environ["STORAGE_ACCOUNT_CONNECTION_STRING"], os.getenv("STORAGE_CONTAINER", "media")
+)
 
 
-def blob_to_image(resource_path):
-    blob_contents = requests.get(f"{config.MEDIA_CONTAINER_URL}/{resource_path}").content
-    fd = BytesIO(blob_contents)
+def download_image(resource_path: str) -> Optional[bytes]:
+    # resource_path contains blob_container_name/blobpath
+    container, path = resource_path.split("/", 1)
+    if container_client.container_name != container:
+        log.warning(
+            f'Request for container "{container}" does not match '
+            f'the configured container "{container_client.container_name}"'
+        )
+        return None
+
+    try:
+        return container_client.download_blob(path).readall()
+    except ResourceNotFoundError:
+        return None
+
+
+def load_pil_image(image_data: bytes) -> PIL.Image.Image:
+    fd = BytesIO(image_data)
     return PIL.Image.open(fd)
 
 
-bbs = BlockBlobService(config.AZURE_ACCOUNT_NAME, config.AZURE_ACCOUNT_KEY)
+def resize_image(image: PIL.Image.Image, width: int, height: int) -> PIL.Image.Image:
+    log.info(f"Resizing image to {width}x{height}")
+    return image.resize((width, height))
 
 
-def resize_blob(resource_path, width, height, mimetype):
-    image = blob_to_image(resource_path)
-    resized = image.resize((width, height))
+@app.route("/readyz")
+def readyz() -> Response:
+    response = Response("", status=204)
 
-    resized_bytes = BytesIO()
-    resized.save(resized_bytes, format=mimetype.rsplit('/', 1)[1])
-    resized_bytes.seek(0)
-
-    resized_path = make_resized_image_path(resource_path, width, height)
-
-    bbs.create_blob_from_stream(
-        config.RESIZED_CONTAINER_NAME,
-        resized_path,
-        resized_bytes,
-        content_settings=ContentSettings(content_type=mimetype))
-
-    resized_blob_url = f"{config.RESIZED_CONTAINER_URL}/{resized_path}"
-    _cache[resized_blob_url] = {
-        'res': True,
-        'exp': time.time() + config.CACHE_STALE_TIMEOUT,
-    }
-
-    return redirect(resized_blob_url)
-
-
-def resource_exists(url):
-    log.info(f"Checking for resource existence at ...{url[-24:]}")
     try:
-        entry = _cache[url]
-    except KeyError:
-        pass  # cache miss
-    else:
-        if entry['exp'] >= time.time():
-            return entry['res']
-    result = requests.head(url)
-    _cache[url] = {
-        'res': result.ok,
-        'exp': time.time() + config.CACHE_STALE_TIMEOUT
-    }
-    log.debug('Cached new result.')
-    return result.ok
+        container_client.get_blob_client("testimg").get_blob_properties()
+    except ResourceNotFoundError as err:
+        # Complain if container doesnt exist
+        if err.error_code != "BlobNotFound":
+            response = make_response(jsonify({"error": f"{err} - {err.error_code}"}), 500)
+
+    return response
 
 
-def fast_redirect(resource_path):
-    log.info('Performing performing fast redirect to original resource.')
-    return redirect(f"{config.MEDIA_CONTAINER_URL}/{resource_path}")
+@app.route("/livez")
+def livez() -> Response:
+    return Response("", status=204)
 
 
-@app.route('/healthz')
+@app.route("/healthz")
 def healthz():
-    return ''
+    return ""
 
 
-@app.route('/<path:resource_path>')
-def get_resource(resource_path):
-    width = request.args.get('width')
-    height = request.args.get('height')
-    resize_requested = width is not None and height is not None
-
-    if not resize_requested:
-        return fast_redirect(resource_path)
+@app.route("/content/<path:resource_path>")
+def get_resource(resource_path: str):
+    width = request.args.get("width")
+    height = request.args.get("height")
+    should_resize = width is not None and height is not None
 
     file_ext = pathlib.Path(resource_path).suffix
     mimetype = mimetypes.types_map.get(file_ext)
     if mimetype is None:
         log.warning(f"Can't find mimetype for extension '{file_ext}', which means we can't attempt a resize.")
-        return fast_redirect(resource_path)
+        should_resize = False
 
-    resized_blob_path = make_resized_image_path(resource_path, width, height)
-    blob_url = f"{config.RESIZED_CONTAINER_URL}/{resized_blob_path}"
+    image = download_image(resource_path)
 
-    if resource_exists(blob_url):
-        log.info('Resized blob already exists, performing fast redirect to resized resource.')
-        return redirect(blob_url)
+    if image is None:
+        return Response("", status=404)
 
-    width, height = int(width), int(height)
-    log.info(f"Resizing image to {width}x{height}")
-    return resize_blob(resource_path, width, height, mimetype)
+    if should_resize:
+        pil_image = resize_image(load_pil_image(download_image(resource_path)), int(width), int(height))
+        with BytesIO() as fd:
+            pil_image.save(fd, format=mimetype.split("/")[1])
+            image = fd.getvalue()
+
+    return Response(image, mimetype=mimetype)
+
+
+if __name__ == "__main__":
+    app.run()

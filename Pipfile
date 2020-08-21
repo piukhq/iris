@@ -6,16 +6,12 @@ name = "pypi"
 [packages]
 flask = "*"
 pillow = "*"
-requests = "*"
 azure-storage-blob = "*"
 
 [dev-packages]
-jedi = "*"
-importmagic = "*"
-"autopep8" = "*"
-yapf = "*"
-"flake8" = "*"
-ptpython = "*"
+flake8 = "*"
+gunicorn = "*"
+black = "*"
 
-[requires]
-python_version = "3.6"
+[pipenv]
+allow_prereleases = true

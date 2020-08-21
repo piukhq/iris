@@ -1,0 +1,57 @@
+stages:
+  - build
+  - tagging
+
+build-develop:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build --pull -t "$CI_REGISTRY/iris:latest" .
+    - docker push "$CI_REGISTRY/iris:latest"
+  only:
+    - develop
+
+build-master:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build --pull -t "$CI_REGISTRY/iris:$CI_COMMIT_TAG" .
+    - docker push "$CI_REGISTRY/iris:$CI_COMMIT_TAG"
+  only:
+    - tags
+
+tag-develop:
+  stage: tagging
+  image: binkops.azurecr.io/tagbot:latest
+  environment: dev
+  script:
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:latest" --tag "develop-$CI_COMMIT_SHORT_SHA"
+  only:
+    - develop
+
+tag-staging:
+  stage: tagging
+  image: binkops.azurecr.io/tagbot:latest
+  environment: staging
+  script:
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:$CI_COMMIT_TAG" --tag "staging-$CI_COMMIT_TAG"
+  only:
+    - tags
+
+tag-prod:
+  stage: tagging
+  image: binkops.azurecr.io/tagbot:latest
+  environment: prod
+  script:
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:$CI_COMMIT_TAG" --tag "prod-$CI_COMMIT_TAG"
+  when: manual
+  only:
+    - tags

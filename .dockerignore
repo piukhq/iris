@@ -1,0 +1,7 @@
+.flake8
+README.md
+.dockerignore
+.git
+.gitignore
+.gitlab-ci.yml
+Dockerfile
