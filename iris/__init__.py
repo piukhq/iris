@@ -33,7 +33,10 @@ def download_image(resource_path: str) -> Optional[bytes]:
         )
         return None
 
-    return container_client.download_blob(path).readall()
+    try:
+        return container_client.download_blob(path).readall()
+    except ResourceNotFoundError:
+        return None
 
 
 def load_pil_image(image_data: bytes) -> PIL.Image.Image:
