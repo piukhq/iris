@@ -10,6 +10,9 @@ from typing import Optional
 from flask import Flask, request, Response, jsonify, make_response
 import PIL.Image
 
+from prometheus import start_metrics
+from metrics import status_code_counter
+
 log = logging.getLogger("iris")
 log.setLevel(logging.INFO)
 handler = logging.StreamHandler()
@@ -60,12 +63,17 @@ def readyz() -> Response:
         if err.error_code != "BlobNotFound":
             response = make_response(jsonify({"error": f"{err} - {err.error_code}"}), 500)
 
+    status_code_counter.labels(status=response.status_code).inc()
+
     return response
 
 
 @app.route("/livez")
 def livez() -> Response:
-    return Response("", status=204)
+    response = Response("", status=204)
+    status_code_counter.labels(status=response.status_code).inc()
+
+    return response
 
 
 @app.route("/healthz")
@@ -88,6 +96,7 @@ def get_resource(resource_path: str):
     image = download_image(resource_path)
 
     if image is None:
+        status_code_counter.labels(status=404).inc()
         return Response("", status=404)
 
     if should_resize:
@@ -96,8 +105,12 @@ def get_resource(resource_path: str):
             pil_image.save(fd, format=mimetype.split("/")[1])
             image = fd.getvalue()
 
-    return Response(image, mimetype=mimetype)
+    response = Response(image, mimetype=mimetype)
+    status_code_counter.labels(status=response.status_code).inc()
+
+    return response
 
 
 if __name__ == "__main__":
+    start_metrics()
     app.run()
