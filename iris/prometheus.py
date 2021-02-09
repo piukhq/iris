@@ -30,6 +30,7 @@ class PrometheusPushThread(threading.Thread):
                     gateway=settings.PROMETHEUS_PUSH_GATEWAY,
                     job=settings.PROMETHEUS_JOB,
                     registry=REGISTRY,
+                    grouping_key=self.grouping_key,
                     timeout=self.PUSH_TIMEOUT,
                 )
                 logger.debug("Push metrics to gateway")
