@@ -45,9 +45,12 @@ class PrometheusPushThread(threading.Thread):
 
 
 def start_metrics():
-    logger.info("Configuring prometheus metric pusher")
-    process_id = str(os.getpid())
-    thread = PrometheusPushThread(process_id)
-    thread.daemon = True
-    thread.start()
-    logger.info("Prometheus push thread started")
+    if not settings.TESTING:
+        logger.info("Configuring prometheus metric pusher")
+        process_id = str(os.getpid())
+        thread = PrometheusPushThread(process_id)
+        thread.daemon = True
+        thread.start()
+        logger.info("Prometheus push thread started")
+    else:
+        logger.info("Prometheus push thread not initialised as this is a test")

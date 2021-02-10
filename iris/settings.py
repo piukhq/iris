@@ -1,4 +1,6 @@
 import logging
+import sys
+
 from os import getenv
 
 
@@ -11,3 +13,5 @@ LOGGER = logging.getLogger("Iris")
 PROMETHEUS_LOG_LEVEL = getattr(logging, getenv("LOG_LEVEL", "INFO").upper(), logging.INFO)
 PROMETHEUS_PUSH_GATEWAY = getenv("PROMETHEUS_PUSH_GATEWAY", "http://localhost:9100")
 PROMETHEUS_JOB = "iris"
+
+TESTING = any("test" in arg for arg in sys.argv)

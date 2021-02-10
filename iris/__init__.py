@@ -52,6 +52,15 @@ def resize_image(image: PIL.Image.Image, width: int, height: int) -> PIL.Image.I
     return image.resize((width, height))
 
 
+@app.after_request
+def prometheus_after_request(response):
+    if request.endpoint in ["readyz", "livez", "healthz"]:
+        pass
+    else:
+        status_code_counter.labels(status=response.status_code).inc()
+    return response
+
+
 @app.route("/readyz")
 def readyz() -> Response:
     response = Response("", status=204)
@@ -63,17 +72,12 @@ def readyz() -> Response:
         if err.error_code != "BlobNotFound":
             response = make_response(jsonify({"error": f"{err} - {err.error_code}"}), 500)
 
-    status_code_counter.labels(status=response.status_code).inc()
-
     return response
 
 
 @app.route("/livez")
 def livez() -> Response:
-    response = Response("", status=204)
-    status_code_counter.labels(status=response.status_code).inc()
-
-    return response
+    return Response("", status=204)
 
 
 @app.route("/healthz")
@@ -96,7 +100,6 @@ def get_resource(resource_path: str):
     image = download_image(resource_path)
 
     if image is None:
-        status_code_counter.labels(status=404).inc()
         return Response("", status=404)
 
     if should_resize:
@@ -105,10 +108,7 @@ def get_resource(resource_path: str):
             pil_image.save(fd, format=mimetype.split("/")[1])
             image = fd.getvalue()
 
-    response = Response(image, mimetype=mimetype)
-    status_code_counter.labels(status=response.status_code).inc()
-
-    return response
+    return Response(image, mimetype=mimetype)
 
 
 if __name__ == "__main__":
