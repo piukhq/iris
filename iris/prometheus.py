@@ -4,7 +4,7 @@ import threading
 import time
 import urllib.error
 
-import settings
+import iris.settings as settings
 from prometheus_client import push_to_gateway
 from prometheus_client.registry import REGISTRY
 

@@ -10,8 +10,8 @@ from typing import Optional
 from flask import Flask, request, Response, jsonify, make_response
 import PIL.Image
 
-from prometheus import start_metrics
-from metrics import status_code_counter
+from iris.prometheus import start_metrics
+from iris.metrics import status_code_counter
 
 log = logging.getLogger("iris")
 log.setLevel(logging.INFO)
@@ -24,6 +24,9 @@ app = Flask(__name__)
 container_client = ContainerClient.from_connection_string(
     os.environ["STORAGE_ACCOUNT_CONNECTION_STRING"], os.getenv("STORAGE_CONTAINER", "media")
 )
+
+# Start prometheus
+start_metrics()
 
 
 def download_image(resource_path: str) -> Optional[bytes]:
@@ -54,10 +57,9 @@ def resize_image(image: PIL.Image.Image, width: int, height: int) -> PIL.Image.I
 
 @app.after_request
 def prometheus_after_request(response):
-    if request.endpoint in ["readyz", "livez", "healthz"]:
-        pass
-    else:
+    if request.endpoint not in ["readyz", "livez", "healthz"]:
         status_code_counter.labels(status=response.status_code).inc()
+
     return response
 
 
@@ -112,5 +114,4 @@ def get_resource(resource_path: str):
 
 
 if __name__ == "__main__":
-    start_metrics()
     app.run()
