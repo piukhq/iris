@@ -60,6 +60,7 @@ def prometheus_after_request(response):
     if request.endpoint not in ["readyz", "livez", "healthz"]:
         log.info("prom inc here")
         status_code_counter.labels(status=response.status_code).inc()
+        log.info("prom inc done")
 
     return response
 
