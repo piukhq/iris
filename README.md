@@ -5,7 +5,7 @@ Content delivery API with dynamic image resizing.
 ## Installation
 
 ```shell
-pipenv install --dev
+pipenv install --dev --python 3.8
 ```
 
 ## Test Server
@@ -13,7 +13,7 @@ pipenv install --dev
 ```shell
 export STORAGE_ACCOUNT_CONNECTION_STRING=BLAH
 export STORAGE_CONTAINER=BLAH
-pipenv run python iris/__init__.py
+pipenv run python wsgi.py
 ```
 
 ```shell
