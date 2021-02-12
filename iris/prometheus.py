@@ -33,11 +33,11 @@ class PrometheusPushThread(threading.Thread):
                     grouping_key=self.grouping_key,
                     timeout=self.PUSH_TIMEOUT,
                 )
-                logger.debug("Push metrics to gateway")
+                logger.info("Push metrics to gateway")
             except (ConnectionRefusedError, urllib.error.URLError):
-                logger.warning("Failed to push metrics, connection refused")
+                logger.info("Failed to push metrics, connection refused")
             except Exception as err:
-                logger.exception("Caught exception whilst posting metrics", exc_info=err)
+                logger.info("Caught exception whilst posting metrics", exc_info=err)
 
             remaining = self.SLEEP_INTERVAL - (time.time() - now)
             if remaining > 0:
