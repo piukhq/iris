@@ -15,4 +15,4 @@ COPY iris /app/iris/
 
 CMD [ "gunicorn", "--workers=2", "--threads=2", "--error-logfile=-", \
                   "--logger-class=iris.gunicorn.Logger", \
-                  "--access-logfile=-", "--bind=0.0.0.0:9000", "iris:app" ]
+                  "--access-logfile=-", "--bind=0.0.0.0:9000", "wsgi:app" ]

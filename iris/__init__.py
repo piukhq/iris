@@ -10,7 +10,6 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import ContainerClient
 from flask import Flask, request, Response, jsonify, make_response
 
-from prometheus import start_metrics
 from prometheus.metrics import status_code_counter
 
 log = logging.getLogger("iris")
@@ -24,9 +23,6 @@ app = Flask(__name__)
 container_client = ContainerClient.from_connection_string(
     os.environ["STORAGE_ACCOUNT_CONNECTION_STRING"], os.getenv("STORAGE_CONTAINER", "media")
 )
-
-# Start prometheus
-start_metrics()
 
 
 def download_image(resource_path: str) -> Optional[bytes]:
@@ -111,7 +107,3 @@ def get_resource(resource_path: str):
             image = fd.getvalue()
 
     return Response(image, mimetype=mimetype)
-
-
-if __name__ == "__main__":
-    app.run()
