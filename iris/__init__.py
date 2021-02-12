@@ -1,3 +1,4 @@
+import threading
 from io import BytesIO
 import mimetypes
 import logging
@@ -61,6 +62,8 @@ def prometheus_after_request(response):
         log.info("prom inc here")
         status_code_counter.labels(status=response.status_code).inc()
         log.info("prom inc done")
+        log.info(response.status_code)
+        log.info(threading.get_ident())
 
     return response
 
@@ -111,6 +114,8 @@ def get_resource(resource_path: str):
         with BytesIO() as fd:
             pil_image.save(fd, format=mimetype.split("/")[1])
             image = fd.getvalue()
+
+    log.info(threading.get_ident())
 
     return Response(image, mimetype=mimetype)
 
