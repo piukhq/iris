@@ -9,6 +9,7 @@ from prometheus_client import push_to_gateway
 from prometheus_client.registry import REGISTRY
 
 logger = logging.getLogger('prometheus')
+logger.setLevel(settings.PROMETHEUS_LOG_LEVEL)
 
 
 class PrometheusPushThread(threading.Thread):
@@ -35,9 +36,9 @@ class PrometheusPushThread(threading.Thread):
                 )
                 logger.info("Push metrics to gateway")
             except (ConnectionRefusedError, urllib.error.URLError):
-                logger.info("Failed to push metrics, connection refused")
+                logger.warning("Failed to push metrics, connection refused")
             except Exception as err:
-                logger.info("Caught exception whilst posting metrics", exc_info=err)
+                logger.exception("Caught exception whilst posting metrics", exc_info=err)
 
             remaining = self.SLEEP_INTERVAL - (time.time() - now)
             if remaining > 0:

@@ -12,7 +12,8 @@ from flask import Flask, request, Response, jsonify, make_response
 import PIL.Image
 
 from iris.prometheus import start_metrics
-from iris.metrics import status_code_counter
+
+from iris import metrics
 
 log = logging.getLogger("iris")
 log.setLevel(logging.INFO)
@@ -56,16 +57,12 @@ def resize_image(image: PIL.Image.Image, width: int, height: int) -> PIL.Image.I
     return image.resize((width, height))
 
 
-# @app.after_request
-# def prometheus_after_request(response):
-#     if request.endpoint not in ["readyz", "livez", "healthz"]:
-#         # log.info("prom inc here")
-#         status_code_counter.labels(status=response.status_code).inc()
-#         # log.info("prom inc done")
-#         # log.info(response.status_code)
-#         # log.info(threading.get_ident())
-#
-#     return response
+@app.after_request
+def prometheus_after_request(response):
+    if request.endpoint not in ["readyz", "livez", "healthz"]:
+        metrics.status_code_counter.labels(status=response.status_code).inc()
+
+    return response
 
 
 @app.route("/readyz")
@@ -114,11 +111,6 @@ def get_resource(resource_path: str):
         with BytesIO() as fd:
             pil_image.save(fd, format=mimetype.split("/")[1])
             image = fd.getvalue()
-
-    log.info(threading.get_ident())
-    status_code_counter.labels(status=200).inc()
-    log.info('done inc')
-
 
     return Response(image, mimetype=mimetype)
 
