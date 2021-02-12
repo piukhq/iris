@@ -1,19 +1,17 @@
-import threading
-from io import BytesIO
-import mimetypes
 import logging
-import pathlib
+import mimetypes
 import os
-from azure.storage.blob import ContainerClient
-from azure.core.exceptions import ResourceNotFoundError
+import pathlib
+from io import BytesIO
 from typing import Optional
 
-from flask import Flask, request, Response, jsonify, make_response
 import PIL.Image
+from azure.core.exceptions import ResourceNotFoundError
+from azure.storage.blob import ContainerClient
+from flask import Flask, request, Response, jsonify, make_response
 
-from iris.prometheus import start_metrics
-
-from iris import metrics
+from prometheus import start_metrics
+from prometheus.metrics import status_code_counter
 
 log = logging.getLogger("iris")
 log.setLevel(logging.INFO)
@@ -60,7 +58,7 @@ def resize_image(image: PIL.Image.Image, width: int, height: int) -> PIL.Image.I
 @app.after_request
 def prometheus_after_request(response):
     if request.endpoint not in ["readyz", "livez", "healthz"]:
-        metrics.status_code_counter.labels(status=response.status_code).inc()
+        status_code_counter.labels(status=response.status_code).inc()
 
     return response
 

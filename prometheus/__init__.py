@@ -4,11 +4,12 @@ import threading
 import time
 import urllib.error
 
-import iris.settings as settings
 from prometheus_client import push_to_gateway
 from prometheus_client.registry import REGISTRY
 
-logger = logging.getLogger('prometheus')
+import settings
+
+logger = logging.getLogger("prometheus")
 logger.setLevel(settings.PROMETHEUS_LOG_LEVEL)
 
 
