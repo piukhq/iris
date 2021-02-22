@@ -18,6 +18,9 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s"))
 log.addHandler(handler)
 
+# Quieten the azure library
+logging.getLogger('azure').setLevel(logging.WARNING)
+
 app = Flask(__name__)
 
 container_client = ContainerClient.from_connection_string(
