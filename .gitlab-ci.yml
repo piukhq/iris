@@ -1,18 +1,21 @@
 stages:
+  - dev
   - build
-  - tagging
+  - staging
+  - prod
 
-build-develop:
-  stage: build
+dev:
+  stage: dev
   image: docker:latest
   services:
     - docker:dind
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - docker build --pull -t "$CI_REGISTRY/iris:latest" .
-    - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$CI_REGISTRY/aqua-scanner:5.0" scan --local "$CI_REGISTRY/iris:latest" --host https://aqua.uksouth.bink.sh:30001/ --user scanner --password $AQUA_PASSWORD --show-negligible --policies Bink --text
-    - docker push "$CI_REGISTRY/iris:latest"
+    - export CTAG="develop-$(date +%F-%H%M%S)"
+    - docker build --pull -t "$CI_REGISTRY/iris:$CTAG" .
+    - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$CI_REGISTRY/aqua-scanner:5.0" scan --local "$CI_REGISTRY/iris:$CTAG" --host https://aqua.uksouth.bink.sh:30001/ --user scanner --password $AQUA_PASSWORD --show-negligible --policies Bink --text
+    - docker push "$CI_REGISTRY/iris:$CTAG"
   only:
     - develop
 
@@ -30,17 +33,8 @@ build-master:
   only:
     - tags
 
-tag-develop:
-  stage: tagging
-  image: binkops.azurecr.io/tagbot:latest
-  environment: dev
-  script:
-    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:latest" --tag "develop-$CI_COMMIT_SHORT_SHA"
-  only:
-    - develop
-
-tag-staging:
-  stage: tagging
+staging:
+  stage: staging
   image: binkops.azurecr.io/tagbot:latest
   environment: staging
   script:
@@ -48,8 +42,8 @@ tag-staging:
   only:
     - tags
 
-tag-prod:
-  stage: tagging
+prod:
+  stage: prod
   image: binkops.azurecr.io/tagbot:latest
   environment: prod
   script:
