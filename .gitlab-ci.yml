@@ -13,8 +13,8 @@ dev:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
     - export CTAG="develop-$(date +%F-%H%M%S)"
-    - docker build --pull -t "$CI_REGISTRY/iris:$CTAG" .
-    - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$CI_REGISTRY/aqua-scanner:5.0" scan --local "$CI_REGISTRY/iris:$CTAG" --host https://aqua.uksouth.bink.sh:30001/ --user scanner --password $AQUA_PASSWORD --show-negligible --policies Bink --text
+    - docker build --pull -t "$CI_REGISTRY/iris:develop" -t "$CI_REGISTRY/iris:$CTAG" .
+    - docker push "$CI_REGISTRY/iris:develop"
     - docker push "$CI_REGISTRY/iris:$CTAG"
   only:
     - develop
@@ -28,7 +28,6 @@ build-master:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
     - docker build --pull -t "$CI_REGISTRY/iris:$CI_COMMIT_TAG" .
-    - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$CI_REGISTRY/aqua-scanner:5.0" scan --local "$CI_REGISTRY/iris:$CI_COMMIT_TAG" --host https://aqua.uksouth.bink.sh:30001/ --user scanner --password $AQUA_PASSWORD --show-negligible --policies Bink --text
     - docker push "$CI_REGISTRY/iris:$CI_COMMIT_TAG"
   only:
     - tags
@@ -38,6 +37,7 @@ staging:
   image: binkops.azurecr.io/tagbot:latest
   environment: staging
   script:
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:$CI_COMMIT_TAG" --tag "staging"
     - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:$CI_COMMIT_TAG" --tag "staging-$CI_COMMIT_TAG"
   only:
     - tags
@@ -47,6 +47,7 @@ prod:
   image: binkops.azurecr.io/tagbot:latest
   environment: prod
   script:
+    - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:$CI_COMMIT_TAG" --tag "prod"
     - tagbot --username "$CI_REGISTRY_USER" --password "$CI_REGISTRY_PASSWORD" --source "$CI_REGISTRY/iris:$CI_COMMIT_TAG" --tag "prod-$CI_COMMIT_TAG"
   when: manual
   only:
