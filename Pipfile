@@ -8,11 +8,10 @@ flask = "*"
 pillow = "*"
 azure-storage-blob = "*"
 prometheus-client = "*"
+gunicorn = "*"
 
 [dev-packages]
 flake8 = "*"
 gunicorn = "*"
-black = "*"
-
-[pipenv]
-allow_prereleases = true
+black = "==21.4b1"
+isort = "*"

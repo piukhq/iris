@@ -19,7 +19,7 @@ handler.setFormatter(logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s 
 log.addHandler(handler)
 
 # Quieten the azure library
-logging.getLogger('azure').setLevel(logging.WARNING)
+logging.getLogger("azure").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
