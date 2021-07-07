@@ -20,7 +20,7 @@ tags:
     description: Misc operations
 paths:
   '/content/{container}/{path}':
-    post:
+    get:
       tags:
         - Content
       summary: Deliver image content
