@@ -15,3 +15,13 @@ flake8 = "*"
 gunicorn = "*"
 black = "==21.4b1"
 isort = "*"
+xenon = "*"
+pytest = "*"
+mypy = "*"
+types-flask = "*"
+pytest-flask = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
+
+[requires]
+python_version = "3.9"
