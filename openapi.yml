@@ -1,0 +1,80 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://localhost:9000'
+    description: Local server
+  - url: 'https://api.dev.gb.bink.com/'
+    description: Dev Environment
+  - url: 'https://api.staging.gb.bink.com/'
+    description: Staging Environment
+  - url: 'https://api.gb.bink.com/'
+    description: Prod Environment
+info:
+  description: >-
+    Content delivery API with dynamic image resizing.
+  version: 1.0.0
+  title: Iris
+tags:
+  - name: Content
+    description: Content delivery
+  - name: Misc
+    description: Misc operations
+paths:
+  '/content/{container}/{path}':
+    get:
+      tags:
+        - Content
+      summary: Deliver image content
+      description: >-
+        Gets an image from the content server.
+
+
+        The container value should normally always be `media`
+
+
+        If width or height are supplied without their counterpart, image resizing will not take place.
+      parameters:
+        - name: container
+          in: path
+          description: 'Azure Blob Storage container name'
+          required: true
+          schema:
+            type: string
+            default: media
+        - name: path
+          in: path
+          description: 'Image resource path'
+          required: true
+          schema:
+            type: string
+            pattern: ".+"
+
+        - name: width
+          in: query
+          description: 'Image width'
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: height
+          in: query
+          description: 'Image height'
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+
+      responses:
+        '200':
+          description: Image returned
+        '404':
+          description: Image not found
+
+  /livez:
+    get:
+      tags:
+        - Misc
+      summary: Liveness probe endpoint
+      description: Returns 204 when the server is ready
+      responses:
+        '204':
+          description: Server is up and working

@@ -8,11 +8,20 @@ flask = "*"
 pillow = "*"
 azure-storage-blob = "*"
 prometheus-client = "*"
+gunicorn = "*"
 
 [dev-packages]
 flake8 = "*"
 gunicorn = "*"
-black = "*"
+black = "==21.4b1"
+isort = "*"
+xenon = "*"
+pytest = "*"
+mypy = "*"
+types-flask = "*"
+pytest-flask = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
 
-[pipenv]
-allow_prereleases = true
+[requires]
+python_version = "3.9"
