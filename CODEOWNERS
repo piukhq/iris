@@ -1,4 +1,4 @@
 * @squads/bank
 .dockerignore @DevOps
-Dockerfile @Olympus/devops
+Dockerfile @squads/devops
 .gitlab-ci.yml @DevOps
