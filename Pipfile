@@ -9,6 +9,7 @@ pillow = "*"
 azure-storage-blob = "*"
 prometheus-client = "*"
 gunicorn = "*"
+flask-cors = "*"
 
 [dev-packages]
 flake8 = "*"
