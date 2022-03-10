@@ -28,7 +28,7 @@ app = Flask(__name__)
 CORS(app)
 app.add_url_rule("/metrics", "metrics", view_func=handle_metrics)
 
-container_client = ContainerClient.from_connection_string(
+container_client: ContainerClient = ContainerClient.from_connection_string(
     os.environ["STORAGE_ACCOUNT_CONNECTION_STRING"], os.getenv("STORAGE_CONTAINER", "media")
 )
 
