@@ -11,6 +11,7 @@ import PIL.Image
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import ContainerClient
 from flask import Flask, Response, request
+from flask_cors import CORS
 
 from .prometheus import handle_metrics, status_code_counter
 
@@ -24,6 +25,7 @@ log.addHandler(handler)
 logging.getLogger("azure").setLevel(logging.WARNING)
 
 app = Flask(__name__)
+CORS(app)
 app.add_url_rule("/metrics", "metrics", view_func=handle_metrics)
 
 container_client = ContainerClient.from_connection_string(
