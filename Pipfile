@@ -10,11 +10,11 @@ azure-storage-blob = "*"
 prometheus-client = "*"
 gunicorn = "*"
 flask-cors = "*"
+pydantic = "*"
 
 [dev-packages]
 flake8 = "*"
 gunicorn = "*"
-black = "==21.4b1"
 isort = "*"
 xenon = "*"
 pytest = "*"
@@ -23,6 +23,7 @@ types-flask = "*"
 pytest-flask = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
+black = "*"
 
 [requires]
 python_version = "3.9"

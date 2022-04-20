@@ -1,6 +1,5 @@
 import logging
 import mimetypes
-import os
 import pathlib
 
 from io import BytesIO
@@ -12,6 +11,7 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import ContainerClient
 from flask import Flask, Response, request
 from flask_cors import CORS
+from pydantic import BaseSettings
 
 from .prometheus import handle_metrics, status_code_counter
 
@@ -21,6 +21,7 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter("%(asctime)s %(name)-12s %(levelname)-8s %(message)s"))
 log.addHandler(handler)
 
+
 # Quieten the azure library
 logging.getLogger("azure").setLevel(logging.WARNING)
 
@@ -28,20 +29,31 @@ app = Flask(__name__)
 CORS(app)
 app.add_url_rule("/metrics", "metrics", view_func=handle_metrics)
 
-container_client: ContainerClient = ContainerClient.from_connection_string(
-    os.environ["STORAGE_ACCOUNT_CONNECTION_STRING"], os.getenv("STORAGE_CONTAINER", "media")
+
+class Settings(BaseSettings):
+    storage_account_connection_string: str
+    storage_container: str = "media"
+    storage_container_in_url: bool = True
+
+
+settings = Settings()
+
+container_client = ContainerClient.from_connection_string(
+    settings.storage_account_connection_string, settings.storage_container
 )
 
 
 def download_image(resource_path: str) -> Optional[bytes]:
-    # resource_path contains blob_container_name/blobpath
-    container, path = resource_path.split("/", 1)
-    if container_client.container_name != container:
-        log.warning(
-            f'Request for container "{container}" does not match '
-            f'the configured container "{container_client.container_name}"'
-        )
-        return None
+    if settings.storage_container_in_url:
+        container, path = resource_path.split("/", 1)
+        if container_client.container_name != container:
+            log.warning(
+                f'Request for container "{container}" does not match '
+                f'the configured container "{container_client.container_name}"'
+            )
+            return None
+    else:
+        path = resource_path
 
     try:
         return container_client.download_blob(path).readall()
