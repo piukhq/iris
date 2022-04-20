@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-container_client = ContainerClient.from_connection_string(
+container_client: ContainerClient = ContainerClient.from_connection_string(
     settings.storage_account_connection_string, settings.storage_container
 )
 
