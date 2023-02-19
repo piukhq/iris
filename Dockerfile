@@ -1,15 +1,18 @@
-FROM ghcr.io/binkhq/python:3.9-pipenv
+FROM ghcr.io/binkhq/python:3.11-poetry as build
 
+WORKDIR /src
+ADD . .
+RUN poetry build
+
+FROM ghcr.io/binkhq/python:3.11
 WORKDIR /app
-COPY iris /app/iris
-COPY Pipfile Pipfile
-COPY Pipfile.lock Pipfile.lock
+COPY --from=build /src/dist/*.whl .
 
-RUN pipenv install --system --deploy --ignore-pipfile
-
+RUN export wheel=$(find -type f -name "*.whl") && \
+    pip install "$wheel" && \
+    rm -rf "$wheel"
 ENV PROMETHEUS_MULTIPROC_DIR=/dev/shm
 ENTRYPOINT ["linkerd-await", "--"]
-CMD [ "gunicorn", "--workers=2", "--threads=2", "--error-logfile=-", \
-                  "--logger-class=iris.GunicornLogger", \
-                  "--access-logfile=-", "--bind=0.0.0.0:9000", \
-                  "--bind=0.0.0.0:9100", "iris:app" ]
+CMD [ "gunicorn", "--error-logfile=-", "--access-logfile=-", \
+                  "--bind=0.0.0.0:9000", "--bind=0.0.0.0:9100", \
+                  "--logger-class=iris.GunicornLogger", "iris:app" ]

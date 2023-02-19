@@ -1,5 +1,4 @@
 import logging.config
-
 from typing import Any
 
 import gunicorn.glogging

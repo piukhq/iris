@@ -1,12 +1,10 @@
 import logging
 import mimetypes
 import pathlib
-
 from io import BytesIO
 from typing import Optional
 
 import PIL.Image
-
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import ContainerClient
 from flask import Flask, Response, request
