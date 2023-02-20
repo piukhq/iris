@@ -45,6 +45,7 @@ def download_image(resource_path: str) -> Optional[bytes]:
             log.warning(f"Container: {container}, not in allowed containers: {settings.allowed_storage_containers}")
             return None
     else:
+        container = None
         path = resource_path
 
     try:
