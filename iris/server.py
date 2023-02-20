@@ -37,6 +37,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+
 def download_image(resource_path: str) -> Optional[bytes]:
     if settings.storage_container_in_url:
         container, path = resource_path.split("/", 1)
