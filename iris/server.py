@@ -30,30 +30,26 @@ app.add_url_rule("/metrics", "metrics", view_func=handle_metrics)
 
 class Settings(BaseSettings):
     storage_account_connection_string: str
+    allowed_storage_containers: list = ["media", "logos"]
     storage_container: str = "media"
     storage_container_in_url: bool = True
 
 
 settings = Settings()
 
-container_client: ContainerClient = ContainerClient.from_connection_string(
-    settings.storage_account_connection_string, settings.storage_container
-)
-
-
 def download_image(resource_path: str) -> Optional[bytes]:
     if settings.storage_container_in_url:
         container, path = resource_path.split("/", 1)
-        if container_client.container_name != container:
-            log.warning(
-                f'Request for container "{container}" does not match '
-                f'the configured container "{container_client.container_name}"'
-            )
+        if container not in settings.allowed_storage_containers:
+            log.warning(f"Container: {container}, not in allowed containers: {settings.allowed_storage_containers}")
             return None
     else:
         path = resource_path
 
     try:
+        container_client: ContainerClient = ContainerClient.from_connection_string(
+            settings.storage_account_connection_string, container if container else settings.storage_container
+        )
         return container_client.download_blob(path).readall()
     except ResourceNotFoundError:
         return None
